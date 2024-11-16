@@ -1,0 +1,59 @@
+version: "3.9"
+
+networks:
+  dev:
+
+services:
+  #nginx:
+  #  image: nginx:stable-alpine
+  #  ports:
+  #    - "80:80"
+  #  volumes:
+  #    - './nginx.conf:/etc/nginx/nginx.conf'
+  #  depends_on:
+  #    - backend
+  #    - frontend
+  #  networks:
+  #    - dev
+
+  prod-hackaton-backend:
+    build:
+      context: ./prod-hackaton-backend
+    networks:
+      - dev
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "4000:4000"
+    depends_on:
+      - prod-postgres
+    restart: always
+
+    working_dir: /prod-hackaton-backend
+
+  #frontend:
+  #  build:
+  #    context: ./frontend
+  #  networks:
+  #    - dev
+  #  ports:
+  #    - "3000:3000"
+
+  prod-postgres:
+    image: "postgres:13.3-alpine"
+    container_name: prod-postgres
+    volumes:
+      - prod-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: prod
+
+      POSTGRES_USER: {{sensitive_data}}
+      POSTGRES_PASSWORD: {{sensitive_data}}
+      PGPORT: 5432
+    networks:
+      - dev
+      
+volumes:
+  prod-data:
